@@ -7,7 +7,11 @@
 
 {{ if and .Params.featureimage (not $featured) }}
 {{- $url:= .Params.featureimage -}}
-{{ $featured = resources.GetRemote $url }}
+{{ if or (strings.HasPrefix $url "http:") (strings.HasPrefix $url "https:") }}
+  {{ $featured = resources.GetRemote $url }}
+{{ else }}
+  {{ $featured = resources.Get $url }}
+{{ end }}
 {{ end }}
 
 {{- if not $featured }}
@@ -21,12 +25,12 @@
 {{ end -}}
 
 {{ $isParentList := eq (.Scratch.Get "scope") "list"  }}
-{{ $shouldBlur := $.Params.layoutBackgroundBlur | default (or 
-        (and ($.Site.Params.article.layoutBackgroundBlur | default true) (not $isParentList)) 
+{{ $shouldBlur := $.Params.layoutBackgroundBlur | default (or
+        (and ($.Site.Params.article.layoutBackgroundBlur | default true) (not $isParentList))
         (and ($.Site.Params.list.layoutBackgroundBlur | default true) ($isParentList))
     ) }}
-{{ $shouldAddHeaderSpace := $.Params.layoutBackgroundHeaderSpace | default (or 
-        (and ($.Site.Params.article.layoutBackgroundHeaderSpace | default true) (not $isParentList)) 
+{{ $shouldAddHeaderSpace := $.Params.layoutBackgroundHeaderSpace | default (or
+        (and ($.Site.Params.article.layoutBackgroundHeaderSpace | default true) (not $isParentList))
         (and ($.Site.Params.list.layoutBackgroundHeaderSpace | default true) ($isParentList))
     ) }}
 {{- with $featured -}}
