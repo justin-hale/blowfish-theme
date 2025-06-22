@@ -16,8 +16,8 @@
       {{ if and .Params.featureimage (not $featured) }}
       {{- $url := .Params.featureimage -}}
       {{ if or (strings.HasPrefix $url "http:") (strings.HasPrefix $url "https:") }}
-        {{/* External URL - use GetRemote */}}
-        {{ $featured = resources.GetRemote $url }}
+        {{/* External URL - create simple reference without downloading */}}
+        {{ $featured = dict "RelPermalink" $url "Permalink" $url "IsExternal" true }}
       {{ else }}
         {{/* Internal file - try assets first, then static */}}
         {{ $featured = resources.Get $url }}
@@ -32,15 +32,17 @@
       {{ if .Params.hideFeatureImage }}{{ $featured = false }}{{ end }}
       {{- with $featured -}}
       {{ $isStatic := false }}
+      {{ $isExternal := false }}
       {{ $featuredPath := "" }}
       {{ if reflect.IsMap . }}
         {{ $isStatic = .IsStatic | default false }}
+        {{ $isExternal = .IsExternal | default false }}
         {{ $featuredPath = .RelPermalink }}
       {{ else }}
         {{ $featuredPath = .RelPermalink }}
       {{ end }}
 
-      {{ if or $disableImageOptimization $isStatic (and (not (reflect.IsMap .)) (strings.HasSuffix $featuredPath ".svg")) }}
+      {{ if or $disableImageOptimization $isStatic $isExternal (and (not (reflect.IsMap .)) (strings.HasSuffix $featuredPath ".svg")) }}
         <div class="w-full thumbnail_card nozoom" style="background-image:url({{ $featuredPath }});"></div>
       {{ else }}
         {{ with .Resize "600x" }}
