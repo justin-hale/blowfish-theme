@@ -16,18 +16,22 @@
       {{ if and .Params.featureimage (not $featured) }}
       {{- $url := .Params.featureimage -}}
       {{ if or (strings.HasPrefix $url "http:") (strings.HasPrefix $url "https:") }}
-  {{ $featured = resources.GetRemote $url }}
-{{ else }}
-  {{/* For static assets, create the correct URL path */}}
-  {{ $staticPath := printf "/%s" $url }}
-  {{/* Create a mock resource for static assets */}}
-  {{ $featured = dict "RelPermalink" $staticPath "Permalink" (printf "%s%s" .Site.BaseURL $staticPath) }}
-{{ end }}
+        {{/* External URL - use GetRemote */}}
+        {{ $featured = resources.GetRemote $url }}
+      {{ else }}
+        {{/* Internal file - try assets first, then static */}}
+        {{ $featured = resources.Get $url }}
+        {{ if not $featured }}
+          {{/* File not in assets, treat as static file */}}
+          {{ $staticPath := printf "/%s" $url }}
+          {{ $featured = dict "RelPermalink" $staticPath "Permalink" (printf "%s%s" .Site.BaseURL $staticPath) "IsStatic" true }}
+        {{ end }}
+      {{ end }}
       {{ end }}
       {{- if not $featured }}{{ with .Site.Params.defaultFeaturedImage }}{{ $featured = resources.Get . }}{{ end }}{{ end -}}
       {{ if .Params.hideFeatureImage }}{{ $featured = false }}{{ end }}
       {{- with $featured -}}
-      {{ if or $disableImageOptimization (strings.HasSuffix $featured ".svg")}}
+      {{ if or $disableImageOptimization (strings.HasSuffix $featured ".svg") (.IsStatic | default false) }}
         {{ with . }}
         <div class="w-full thumbnail_card nozoom" style="background-image:url({{ .RelPermalink }});"></div>
         {{ end }}

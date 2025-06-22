@@ -8,12 +8,16 @@
 {{ if and .Params.featureimage (not $featured) }}
 {{- $url:= .Params.featureimage -}}
 {{ if or (strings.HasPrefix $url "http:") (strings.HasPrefix $url "https:") }}
+  {{/* External URL - use GetRemote */}}
   {{ $featured = resources.GetRemote $url }}
 {{ else }}
-  {{/* For static assets, create the correct URL path */}}
-  {{ $staticPath := printf "/%s" $url }}
-  {{/* Create a mock resource for static assets */}}
-  {{ $featured = dict "RelPermalink" $staticPath "Permalink" (printf "%s%s" .Site.BaseURL $staticPath) }}
+  {{/* Internal file - try assets first, then static */}}
+  {{ $featured = resources.Get $url }}
+  {{ if not $featured }}
+    {{/* File not in assets, treat as static file */}}
+    {{ $staticPath := printf "/%s" $url }}
+    {{ $featured = dict "RelPermalink" $staticPath "Permalink" (printf "%s%s" .Site.BaseURL $staticPath) "IsStatic" true }}
+  {{ end }}
 {{ end }}
 {{ end }}
 
@@ -42,7 +46,7 @@
 <div id="hero" class="h-[150px] md:h-[200px]"></div>
 {{ end }}
 
-{{ if or $disableImageOptimization (strings.HasSuffix $featured ".svg")}}
+{{ if or $disableImageOptimization (strings.HasSuffix $featured ".svg") (.IsStatic | default false) }}
     {{ with . }}
     <div class="fixed inset-x-0 top-0 h-[800px] single_hero_background nozoom blur-xs"
     style="background-image:url({{ .RelPermalink }});">
