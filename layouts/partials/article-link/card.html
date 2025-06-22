@@ -16,10 +16,13 @@
       {{ if and .Params.featureimage (not $featured) }}
       {{- $url := .Params.featureimage -}}
       {{ if or (strings.HasPrefix $url "http:") (strings.HasPrefix $url "https:") }}
-        {{ $featured = resources.GetRemote $url }}
-      {{ else }}
-        {{ $featured = resources.Get $url }}
-      {{ end }}
+  {{ $featured = resources.GetRemote $url }}
+{{ else }}
+  {{/* For static assets, create the correct URL path */}}
+  {{ $staticPath := printf "/%s" $url }}
+  {{/* Create a mock resource for static assets */}}
+  {{ $featured = dict "RelPermalink" $staticPath "Permalink" (printf "%s%s" .Site.BaseURL $staticPath) }}
+{{ end }}
       {{ end }}
       {{- if not $featured }}{{ with .Site.Params.defaultFeaturedImage }}{{ $featured = resources.Get . }}{{ end }}{{ end -}}
       {{ if .Params.hideFeatureImage }}{{ $featured = false }}{{ end }}
