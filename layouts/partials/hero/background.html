@@ -46,11 +46,18 @@
 <div id="hero" class="h-[150px] md:h-[200px]"></div>
 {{ end }}
 
-{{ if or $disableImageOptimization (strings.HasSuffix $featured ".svg") (.IsStatic | default false) }}
-    {{ with . }}
+{{ $isStatic := false }}
+{{ $featuredPath := "" }}
+{{ if reflect.IsMap . }}
+  {{ $isStatic = .IsStatic | default false }}
+  {{ $featuredPath = .RelPermalink }}
+{{ else }}
+  {{ $featuredPath = .RelPermalink }}
+{{ end }}
+
+{{ if or $disableImageOptimization $isStatic (and (not (reflect.IsMap .)) (strings.HasSuffix $featuredPath ".svg")) }}
     <div class="fixed inset-x-0 top-0 h-[800px] single_hero_background nozoom blur-xs"
-    style="background-image:url({{ .RelPermalink }});">
-    {{ end }}
+    style="background-image:url({{ $featuredPath }});">
 {{ else }}
     {{ with .Resize (print ($.Site.Params.backgroundImageWidth | default "1200") "x") }}
     <div class="fixed inset-x-0 top-0 h-[800px] single_hero_background nozoom blur-xs"

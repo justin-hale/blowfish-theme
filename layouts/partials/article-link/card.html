@@ -31,10 +31,17 @@
       {{- if not $featured }}{{ with .Site.Params.defaultFeaturedImage }}{{ $featured = resources.Get . }}{{ end }}{{ end -}}
       {{ if .Params.hideFeatureImage }}{{ $featured = false }}{{ end }}
       {{- with $featured -}}
-      {{ if or $disableImageOptimization (strings.HasSuffix $featured ".svg") (.IsStatic | default false) }}
-        {{ with . }}
-        <div class="w-full thumbnail_card nozoom" style="background-image:url({{ .RelPermalink }});"></div>
-        {{ end }}
+      {{ $isStatic := false }}
+      {{ $featuredPath := "" }}
+      {{ if reflect.IsMap . }}
+        {{ $isStatic = .IsStatic | default false }}
+        {{ $featuredPath = .RelPermalink }}
+      {{ else }}
+        {{ $featuredPath = .RelPermalink }}
+      {{ end }}
+
+      {{ if or $disableImageOptimization $isStatic (and (not (reflect.IsMap .)) (strings.HasSuffix $featuredPath ".svg")) }}
+        <div class="w-full thumbnail_card nozoom" style="background-image:url({{ $featuredPath }});"></div>
       {{ else }}
         {{ with .Resize "600x" }}
         <div class="w-full thumbnail_card nozoom" style="background-image:url({{ .RelPermalink }});"></div>
