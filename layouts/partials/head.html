@@ -17,7 +17,7 @@
   {{ with (.Params.Summary | default .Params.Description) | default .Site.Params.description -}}
   <meta name="description" content="{{ . }}" />
   {{- end }}
-  {{ with  .Params.Tags | default .Site.Params.keywords -}}
+  {{ with .Params.Tags | default .Site.Params.keywords -}}
   <meta name="keywords" content="{{ range . }}{{ . }}, {{ end -}}" />
   {{- end }}
   {{ with .Site.Params.robots }}
@@ -50,7 +50,8 @@
   <link type="text/css" rel="stylesheet" href="{{ $bundleCSS.RelPermalink }}"
     integrity="{{ $bundleCSS.Data.Integrity }}" />
   {{ $jsAppearance := resources.Get "js/appearance.js" }}
-  {{ $jsAppearance = $jsAppearance | resources.ExecuteAsTemplate "js/appearance.js" . | resources.Minify | resources.Fingerprint (.Site.Params.fingerprintAlgorithm | default "sha512") }}
+  {{ $jsAppearance = $jsAppearance | resources.ExecuteAsTemplate "js/appearance.js" . | resources.Minify |
+  resources.Fingerprint (.Site.Params.fingerprintAlgorithm | default "sha512") }}
   <script type="text/javascript" src="{{ $jsAppearance.RelPermalink }}"
     integrity="{{ $jsAppearance.Data.Integrity }}"></script>
   {{ if .Site.Params.enableSearch | default false }}
@@ -72,21 +73,22 @@
   {{ $bundleJS := $assets.Get "js" | resources.Concat "js/main.bundle.js" | resources.Minify | resources.Fingerprint
   (.Site.Params.fingerprintAlgorithm | default "sha512") }}
   <script defer type="text/javascript" id="script-bundle" src="{{ $bundleJS.RelPermalink }}"
-    integrity="{{ $bundleJS.Data.Integrity }}" data-copy="{{ i18n "code.copy" }}" data-copied="{{ i18n "code.copied"
+    integrity="{{ $bundleJS.Data.Integrity }}" data-copy="{{ i18n " code.copy" }}" data-copied="{{ i18n " code.copied"
     }}"></script>
   {{ end }}
   {{ if not .Site.Params.disableImageZoom | default true }}
-  {{ $zoomJS := resources.Get "lib/zoom/zoom.min.js" | resources.Fingerprint (.Site.Params.fingerprintAlgorithm | default "sha512") }}
+  {{ $zoomJS := resources.Get "lib/zoom/zoom.min.js" | resources.Fingerprint (.Site.Params.fingerprintAlgorithm |
+  default "sha512") }}
   <script src="{{ $zoomJS.RelPermalink }}" integrity="{{ $zoomJS.Data.Integrity }}"></script>
   {{ end }}
   {{/* Icons */}}
   {{ if templates.Exists "partials/favicons.html" }}
   {{ partialCached "favicons.html" .Site }}
   {{ else }}
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | relURL }}" />
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32x32.png" | relURL }}" />
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon-16x16.png" | relURL }}" />
-  <link rel="manifest" href="{{ "site.webmanifest" | relURL }}" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ " apple-touch-icon.png" | relURL }}" />
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ " favicon-32x32.png" | relURL }}" />
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ " favicon-16x16.png" | relURL }}" />
+  <link rel="manifest" href="{{ " site.webmanifest" | relURL }}" />
   {{ end }}
   {{/* Site Verification */}}
   {{ with .Site.Params.verification.google }}
@@ -107,13 +109,24 @@
   {{/* Social */}}
   {{ template "_internal/opengraph.html" . }}
   {{ template "_internal/twitter_cards.html" . }}
-  {{- /* Main page always uses this; fallback elsewhere if no feature image */ -}}
-  {{- /* See https://gohugo.io/templates/embedded/#open-graph */ -}}
-  {{ if not ($.Resources.GetMatch "*feature*") }}
-    {{ with .Site.Params.defaultSocialImage }}
-    <meta name="twitter:image" content="{{ . | absURL }}" />
-    <meta property="og:image" content="{{ . | absURL }}" />
+
+  {{/* Custom feature image handling */}}
+  {{ $featureImage := "" }}
+  {{ if .Params.featureimage }}
+    {{ $featureImage = .Params.featureimage | absURL }}
+  {{ else if $.Resources.GetMatch "*feature*" }}
+    {{ with $.Resources.GetMatch "*feature*" }}
+      {{ $featureImage = .RelPermalink | absURL }}
     {{ end }}
+  {{ else }}
+    {{ with .Site.Params.defaultSocialImage }}
+      {{ $featureImage = . | absURL }}
+    {{ end }}
+  {{ end }}
+
+  {{ if $featureImage }}
+  <meta name="twitter:image" content="{{ $featureImage }}" />
+  <meta property="og:image" content="{{ $featureImage }}" />
   {{ end }}
   {{/* Schema */}}
   {{ partial "schema.html" . }}
@@ -136,11 +149,11 @@
   {{ if templates.Exists "partials/extend-head.html" }}
   {{ partialCached "extend-head.html" .Site }}
   {{ end }}
-  {{/* Uncached extend head - e.g. {{ with .Page.HasShortcode "gallery" }} do something {{ end }}  */}}
+  {{/* Uncached extend head - e.g. {{ with .Page.HasShortcode "gallery" }} do something {{ end }} */}}
   {{ if templates.Exists "partials/extend-head-uncached.html" }}
   {{ partial "extend-head-uncached.html" . }}
   {{ end }}
-  <meta name="theme-color"/>
+  <meta name="theme-color" />
   {{/* Firebase */}}
   {{ with $.Site.Params.firebase }}
   {{ if isset $.Site.Params "firebase" }}
@@ -151,12 +164,12 @@
 
     const firebaseConfig = {
       apiKey: {{ $.Site.Params.firebase.apiKey }},
-      authDomain: {{ $.Site.Params.firebase.apiKey }},
-      projectId: {{ $.Site.Params.firebase.projectId }},
-      storageBucket: {{ $.Site.Params.firebase.storageBucket }},
-      messagingSenderId: {{ $.Site.Params.firebase.messagingSenderId }},
-      appId: {{ $.Site.Params.firebase.appId }},
-      measurementId: {{ $.Site.Params.firebase.measurementId }}
+    authDomain: { { $.Site.Params.firebase.apiKey } },
+    projectId: { { $.Site.Params.firebase.projectId } },
+    storageBucket: { { $.Site.Params.firebase.storageBucket } },
+    messagingSenderId: { { $.Site.Params.firebase.messagingSenderId } },
+    appId: { { $.Site.Params.firebase.appId } },
+    measurementId: { { $.Site.Params.firebase.measurementId } }
     };
 
     var app = firebase.initializeApp(firebaseConfig);
