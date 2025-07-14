@@ -106,28 +106,30 @@
   {{ with .Site.Params.verification.fediverse }}
   <meta name="fediverse:creator" content="{{ . }}" />
   {{ end }}
+
   {{/* Social */}}
-  {{ template "_internal/opengraph.html" . }}
-  {{ template "_internal/twitter_cards.html" . }}
+{{ template "_internal/opengraph.html" . }}
+{{ template "_internal/twitter_cards.html" . }}
 
-  {{/* Custom feature image handling */}}
-  {{ $featureImage := "" }}
-  {{ if .Params.featureimage }}
-    {{ $featureImage = .Params.featureimage | absURL }}
-  {{ else if $.Resources.GetMatch "*feature*" }}
-    {{ with $.Resources.GetMatch "*feature*" }}
-      {{ $featureImage = .RelPermalink | absURL }}
-    {{ end }}
-  {{ else }}
-    {{ with .Site.Params.defaultSocialImage }}
-      {{ $featureImage = . | absURL }}
-    {{ end }}
+{{/* Custom feature image handling */}}
+{{ $featureImage := "" }}
+{{ if .Params.featureimage }}
+  {{ $featureImage = .Params.featureimage | relURL | absURL }}
+{{ else if $.Resources.GetMatch "*feature*" }}
+  {{ with $.Resources.GetMatch "*feature*" }}
+    {{ $featureImage = .RelPermalink | absURL }}
   {{ end }}
+{{ else }}
+  {{ with .Site.Params.defaultSocialImage }}
+    {{ $featureImage = . | absURL }}
+  {{ end }}
+{{ end }}
 
-  {{ if $featureImage }}
-  <meta name="twitter:image" content="{{ $featureImage }}" />
-  <meta property="og:image" content="{{ $featureImage }}" />
-  {{ end }}
+{{ if $featureImage }}
+<meta name="twitter:image" content="{{ $featureImage }}" />
+<meta property="og:image" content="{{ $featureImage }}" />
+{{ end }}
+
   {{/* Schema */}}
   {{ partial "schema.html" . }}
   {{/* Me */}}
